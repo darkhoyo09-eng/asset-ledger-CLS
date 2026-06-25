@@ -100,7 +100,6 @@
     padding:7px 15px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;letter-spacing:.5px;}
   .flash.show{opacity:1;}
 
-  /* settings modal */
   .modal{position:fixed;inset:0;background:rgba(8,9,12,.7);display:none;align-items:flex-end;justify-content:center;z-index:50;}
   .modal.open{display:flex;}
   .sheet{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;
@@ -116,11 +115,11 @@
   .btn.prim{background:var(--brass);color:#1a1408;} .btn.ghost{background:var(--raised);color:var(--dim);border:1px solid var(--line);}
   .pull{display:block;width:100%;background:none;border:none;color:var(--faint);font-family:var(--mono);
     font-size:11px;margin-top:12px;cursor:pointer;text-decoration:underline;}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
   .ghlink{display:block;width:100%;text-align:center;background:var(--raised);
     border:1px solid var(--line);color:var(--dim);font-family:var(--mono);font-size:11px;
     padding:10px;border-radius:9px;margin-top:10px;text-decoration:none;cursor:pointer;}
   .ghlink:active{color:var(--brass);border-color:var(--brass);}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
 <body>
@@ -161,10 +160,9 @@
 
   <div class="flash" id="flash">저장됨</div>
 
-  <!-- settings -->
   <div class="modal" id="modal">
     <div class="sheet">
-      <h2>구글 시트 연동</h2>
+      <h2>설정</h2>
       <p>안내서 3단계에서 받은 <b>웹 앱 URL</b>(…/exec 로 끝남)을 붙여넣으세요. 한 번 넣으면 입력할 때마다 자동 저장됩니다. 다른 기기에서도 같은 URL을 넣으면 같은 데이터를 불러옵니다.</p>
       <label>구글 시트 연동 URL</label>
       <input type="text" id="urlInput" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -207,9 +205,8 @@ function localSave(){try{localStorage.setItem(LKEY,JSON.stringify(state));}catch
 function setSync(cls,txt){$('#syncdot').className='syncdot'+(cls?' '+cls:'');$('#synctxt').textContent=txt;}
 let ft;function flash(m){const f=$('#flash');if(m)f.textContent=m;f.classList.add('show');clearTimeout(ft);ft=setTimeout(()=>f.classList.remove('show'),900);}
 
-// push to google sheet (debounced)
 function scheduleSync(){
-  localSave(); // always keep a local copy too
+  localSave();
   if(!url) return;
   clearTimeout(saveTimer);
   setSync('busy','저장 중…');
@@ -219,7 +216,6 @@ async function pushSheet(){
   if(!url) return;
   try{
     await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(state)});
-    // no-cors → response opaque, assume ok
     setSync('ok','시트에 저장됨 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){ setSync('err','저장 실패 — URL 확인'); }
 }
@@ -291,7 +287,6 @@ document.addEventListener('click',e=>{const t=e.target;
 $('#reset').addEventListener('click',()=>{if(confirm('모든 입력값을 처음 상태로 되돌릴까요? (시트에도 반영됩니다)')){
   state=structuredClone(DEFAULT);open.clear();render();scheduleSync();}});
 
-// settings modal
 $('#gear').addEventListener('click',()=>{$('#urlInput').value=url;$('#modal').classList.add('open');});
 $('#mClose').addEventListener('click',()=>$('#modal').classList.remove('open'));
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#modal').classList.remove('open');});
@@ -303,7 +298,6 @@ $('#mSave').addEventListener('click',()=>{
 });
 $('#mPull').addEventListener('click',()=>{url=$('#urlInput').value.trim();try{localStorage.setItem(UKEY,url);}catch{}pullSheet();$('#modal').classList.remove('open');});
 
-// init
 localLoad();
 try{url=localStorage.getItem(UKEY)||'';}catch{}
 render();
